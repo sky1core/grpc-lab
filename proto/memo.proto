@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package memo;
+
+option go_package = "grpc-lab/proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service MemoService {
+  rpc CreateMemo(CreateMemoRequest) returns (MemoResponse) {
+    option (google.api.http) = {
+      post: "/v1/memo"
+      body: "*"
+    };
+  };
+  rpc GetMemo(GetMemoRequest) returns (MemoResponse)  {
+    option (google.api.http) = {
+      get: "/v1/memo/{id}"
+    };
+  };
+  rpc ListMemos(ListMemosRequest) returns (ListMemosResponse) {
+    option (google.api.http) = {
+      get: "/v1/memos"
+    };
+  };
+  rpc UpdateMemo(UpdateMemoRequest) returns (MemoResponse) {
+    option (google.api.http) = {
+      patch: "/v1/memo/{id}"
+      body: "*"
+    };
+  };
+  rpc DeleteMemo(DeleteMemoRequest) returns (DeleteMemoResponse); // 수정된 부분
+}
+
+message CreateMemoRequest {
+  string title = 1;
+  string content = 2;
+  int32 priority = 3;
+}
+
+message GetMemoRequest {
+  int64 id = 1;
+}
+
+message ListMemosRequest {
+  repeated int64 ids = 1;
+  string keyword = 2;
+  int32 priority = 3;
+  google.protobuf.Timestamp from_created_at = 4;
+  google.protobuf.Timestamp to_created_at = 5;
+}
+
+message UpdateMemoRequest {
+  int64 id = 1;
+  string title = 2;
+  string content = 3;
+  int32 priority = 4;
+}
+
+message DeleteMemoRequest {
+  int64 id = 1;
+}
+
+message MemoResponse {
+  int64 id = 1;
+  string title = 2;
+  string content = 3;
+  int32 priority = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message ListMemosResponse {
+  repeated MemoResponse memos = 1;
+}
+
+// 추가된 메시지 정의
+message DeleteMemoResponse {
+  // 삭제 작업의 성공 여부, 오류 메시지 등 필요한 필드를 추가할 수 있습니다.
+  // 예시로, 성공 여부만 나타내는 simple boolean 필드를 추가합니다.
+  bool success = 1;
+}
