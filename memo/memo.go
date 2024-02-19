@@ -17,11 +17,11 @@ func handleError(err error) error {
 	case nil:
 		return nil
 	case sql.ErrNoRows:
-		slog.Info("Error: ", err)
+		slog.Info("", "error", err)
 		return status.Errorf(codes.NotFound, "Not Found Data.")
 	default:
 		// Log the error
-		slog.Error("Error: ", err)
+		slog.Error("", "error", err)
 
 		return status.Errorf(codes.Internal, "Internal Server Error.")
 	}
