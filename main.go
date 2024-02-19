@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"grpc-lab/db"
 	"grpc-lab/memo"
 	pb "grpc-lab/proto/gen/go"
@@ -49,7 +50,7 @@ func startGRPCGateway() {
 	defer cancel()
 
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	if err := pb.RegisterMemoServiceHandlerFromEndpoint(ctx, mux, "localhost:50051", opts); err != nil {
 		log.Fatalf("Failed to register gRPC gateway: %v", err)
 	}
