@@ -9,8 +9,10 @@ import (
 	"grpc-lab/memo"
 	pb "grpc-lab/proto/gen/go"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -78,6 +80,8 @@ func startGRPCGateway() {
 }
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})))
+
 	// 데이터베이스 연결 초기화
 	if err := db.InitDB("user:password@tcp(localhost:3306)/grpc_lab"); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

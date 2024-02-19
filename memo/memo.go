@@ -2,9 +2,30 @@ package memo
 
 import (
 	"context"
+	"database/sql"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"grpc-lab/db"
 	pb "grpc-lab/proto/gen/go"
+	"log/slog"
 )
+
+// grpc 오류코드에 대해서는 여기를 참고 https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+func handleError(err error) error {
+	// Return an error message based on the error type
+	switch err {
+	case nil:
+		return nil
+	case sql.ErrNoRows:
+		slog.Info("Error: ", err)
+		return status.Errorf(codes.NotFound, "Not Found Data.")
+	default:
+		// Log the error
+		slog.Error("Error: ", err)
+
+		return status.Errorf(codes.Internal, "Internal Server Error.")
+	}
+}
 
 type MemoServiceServer struct {
 	pb.UnimplementedMemoServiceServer
@@ -17,8 +38,7 @@ func (s *MemoServiceServer) CreateMemo(ctx context.Context, req *pb.CreateMemoRe
 	// Execute the SQL statement
 	_, err := db.DB.Exec(sqlStatement, req.Title, req.Content, req.Priority)
 	if err != nil {
-		// If there is an error executing the SQL statement, return nil and the error
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	// Create a MemoResponse object with the details of the new memo
@@ -36,7 +56,7 @@ func (s *MemoServiceServer) DeleteMemo(ctx context.Context, req *pb.DeleteMemoRe
 	// 데이터베이스에서 메모를 삭제하는 로직
 	_, err := db.DB.Exec("DELETE FROM memos WHERE id = ?", req.Id)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 	return &pb.DeleteMemoResponse{Success: true}, nil
 }
@@ -48,7 +68,7 @@ func (s *MemoServiceServer) GetMemo(ctx context.Context, req *pb.GetMemoRequest)
 	var response pb.MemoResponse
 	err := row.Scan(&response.Id, &response.Title, &response.Content, &response.Priority)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	// Return the fetched memo
@@ -80,7 +100,7 @@ func (s *MemoServiceServer) UpdateMemo(ctx context.Context, req *pb.UpdateMemoRe
 	// Update the memo in the database
 	_, err := db.DB.Exec("UPDATE memos SET title = ?, content = ?, priority = ? WHERE id = ?", req.Title, req.Content, req.Priority, req.Id)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	// Return the updated memo

@@ -249,9 +249,10 @@
           "type": "integer",
           "format": "int32"
         },
-        "createdAt": {
+        "created_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "title": "기본적으로 camelCase로 변환되는 필드명을 원하는대로 지정"
         }
       }
     },

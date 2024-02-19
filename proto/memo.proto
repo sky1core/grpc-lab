@@ -67,7 +67,7 @@ message MemoResponse {
   string title = 2;
   string content = 3;
   int32 priority = 4;
-  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp created_at = 5 [json_name = "created_at"];  // 기본적으로 camelCase로 변환되는 필드명을 원하는대로 지정
 }
 
 message ListMemosResponse {
