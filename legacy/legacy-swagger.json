@@ -166,15 +166,15 @@
           {
             "name": "from_created_at",
             "in": "query",
-            "type": "string",
-            "format": "date-time",
+            "type": "integer",
+            "format": "int64",
             "description": "Filter by creation date from"
           },
           {
             "name": "to_created_at",
             "in": "query",
-            "type": "string",
-            "format": "date-time",
+            "type": "integer",
+            "format": "int64",
             "description": "Filter by creation date to"
           }
         ],
@@ -212,7 +212,7 @@
         },
         "created_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "int64"
         }
       }
     }

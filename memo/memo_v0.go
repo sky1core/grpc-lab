@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+	"github.com/jmoiron/sqlx"
 	"grpc-lab/db"
 	"grpc-lab/legacy"
 	pb "grpc-lab/proto/gen/go"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var decoder = schema.NewDecoder()
@@ -17,7 +19,7 @@ var decoder = schema.NewDecoder()
 type ListMemosRequestV0 struct {
 	Ids           []int64 `schema:"ids,comma"`
 	Keyword       string  `schema:"keyword"`
-	Priority      *int32  `schema:"priority"`
+	Priority      int32   `schema:"priority"`
 	FromCreatedAt *int64  `schema:"from_created_at"`
 	ToCreatedAt   *int64  `schema:"to_created_at"`
 }
@@ -162,19 +164,51 @@ func handleLegacyDeleteMemo(w http.ResponseWriter, r *http.Request) (interface{}
 
 // handleLegacyListMemos는 메모 목록을 조회하는 핸들러 함수입니다.
 func handleLegacyListMemos(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	var request ListMemosRequestV0
-	if err := decoder.Decode(&request, r.URL.Query()); err != nil {
+	var req ListMemosRequestV0
+	if err := decoder.Decode(&req, r.URL.Query()); err != nil {
 		log.Printf("Error decoding query params: %v", err)
 		return nil, err
 	}
 
+	qb := db.NewQueryBuilder()
+	qb.Append("SELECT id, title, content, priority, created_at FROM memos WHERE 1=1")
+
+	if len(req.Ids) > 0 {
+		query, args, err := sqlx.In(" AND id IN (?)", req.Ids)
+		if err != nil {
+			return nil, err
+		}
+		qb.Append(query, args...)
+	}
+
+	if req.Keyword != "" {
+		keywordLike := "%" + req.Keyword + "%"
+		qb.Append(" AND (title LIKE ? OR content LIKE ?)", keywordLike, keywordLike)
+	}
+
+	if req.Priority > 0 {
+		qb.Append(" AND priority = ?", req.Priority)
+	}
+
+	if req.FromCreatedAt != nil {
+		qb.Append(" AND created_at >= ?", time.UnixMilli(*req.FromCreatedAt))
+	}
+
+	if req.ToCreatedAt != nil {
+		qb.Append(" AND created_at <= ?", time.UnixMilli(*req.ToCreatedAt))
+	}
+
+	qb.Append(" ORDER BY created_at DESC")
+
+	query, args := qb.Build()
+
 	var memos []db.Memo
-	err := db.DB.Select(&memos, "SELECT id, title, content, priority, created_at FROM memos") // 예시 쿼리
+	err := db.DB.Select(&memos, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	var pbMemos []*legacy.MemoResponseV0
+	var pbMemos = make([]*legacy.MemoResponseV0, 0)
 	for _, memo := range memos {
 		pbMemos = append(pbMemos, memo.ToProtoV0())
 	}

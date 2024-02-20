@@ -2,8 +2,10 @@ package memo
 
 import (
 	"context"
+	"github.com/jmoiron/sqlx"
 	"grpc-lab/db"
 	pb "grpc-lab/proto/gen/go"
+	"time"
 )
 
 type MemoServiceServer struct {
@@ -56,8 +58,41 @@ func (s *MemoServiceServer) GetMemo(ctx context.Context, req *pb.GetMemoRequest)
 }
 
 func (s *MemoServiceServer) ListMemos(ctx context.Context, req *pb.ListMemosRequest) (*pb.ListMemosResponse, error) {
+
+	qb := db.NewQueryBuilder()
+	qb.Append("SELECT id, title, content, priority, created_at FROM memos WHERE 1=1")
+
+	if len(req.Ids) > 0 {
+		query, args, err := sqlx.In(" AND id IN (?)", req.Ids)
+		if err != nil {
+			return nil, err
+		}
+		qb.Append(query, args...)
+	}
+
+	if req.Keyword != "" {
+		keywordLike := "%" + req.Keyword + "%"
+		qb.Append(" AND (title LIKE ? OR content LIKE ?)", keywordLike, keywordLike)
+	}
+
+	if req.Priority > 0 {
+		qb.Append(" AND priority = ?", req.Priority)
+	}
+
+	if req.FromCreatedAt > 0 {
+		qb.Append(" AND created_at >= ?", time.UnixMilli(req.FromCreatedAt))
+	}
+
+	if req.ToCreatedAt > 0 {
+		qb.Append(" AND created_at <= ?", time.UnixMilli(req.ToCreatedAt))
+	}
+
+	qb.Append(" ORDER BY created_at DESC")
+
+	query, args := qb.Build()
+
 	var memos []db.Memo
-	err := db.DB.Select(&memos, "SELECT id, title, content, priority, created_at FROM memos")
+	err := db.DB.Select(&memos, query, args...)
 	if err != nil {
 		return nil, handleError(err)
 	}
