@@ -1,0 +1,220 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Legacy API",
+    "description": "Documentation for Legacy API endpoints",
+    "version": "v0"
+  },
+  "produces": ["application/json"],
+  "paths": {
+    "/v0/memo": {
+      "post": {
+        "summary": "Create a new memo",
+        "operationId": "createMemo",
+        "consumes": ["application/x-www-form-urlencoded"],
+        "parameters": [
+          {
+            "name": "title",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Title of the memo"
+          },
+          {
+            "name": "content",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Content of the memo"
+          },
+          {
+            "name": "priority",
+            "in": "formData",
+            "type": "integer",
+            "format": "int32",
+            "required": false,
+            "description": "Priority of the memo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memo successfully created",
+            "schema": {
+              "$ref": "#/definitions/MemoResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v0/memo/{id}": {
+      "get": {
+        "summary": "Get a memo by its ID",
+        "operationId": "getMemoById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the memo to fetch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memo fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/MemoResponse"
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a memo",
+        "operationId": "updateMemo",
+        "consumes": ["application/x-www-form-urlencoded"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the memo to update"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "New title of the memo"
+          },
+          {
+            "name": "content",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "New content of the memo"
+          },
+          {
+            "name": "priority",
+            "in": "formData",
+            "type": "integer",
+            "format": "int32",
+            "required": false,
+            "description": "New priority of the memo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memo updated successfully",
+            "schema": {
+              "$ref": "#/definitions/MemoResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a memo",
+        "operationId": "deleteMemo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the memo to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memo deleted successfully"
+          }
+        }
+      }
+    },
+    "/v0/memos": {
+      "get": {
+        "summary": "List all memos",
+        "operationId": "listMemos",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi",
+            "description": "Filter by memo IDs"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "type": "string",
+            "description": "Filter by keyword in title or content"
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "type": "integer",
+            "format": "int32",
+            "description": "Filter by priority"
+          },
+          {
+            "name": "from_created_at",
+            "in": "query",
+            "type": "string",
+            "format": "date-time",
+            "description": "Filter by creation date from"
+          },
+          {
+            "name": "to_created_at",
+            "in": "query",
+            "type": "string",
+            "format": "date-time",
+            "description": "Filter by creation date to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of memos",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MemoResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "MemoResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "title": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

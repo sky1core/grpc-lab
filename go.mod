@@ -17,6 +17,8 @@ require (
 	github.com/bufbuild/protocompile v0.6.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.8 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/schema v1.2.1 // indirect
 	github.com/jhump/protoreflect v1.15.3 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	golang.org/x/net v0.21.0 // indirect

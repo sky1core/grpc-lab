@@ -5,7 +5,6 @@ package memo;
 option go_package = "grpc-lab/proto";
 
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 
 service MemoService {
   rpc CreateMemo(CreateMemoRequest) returns (MemoResponse) {
@@ -19,18 +18,24 @@ service MemoService {
       get: "/v1/memo/{id}"
     };
   };
-  rpc ListMemos(ListMemosRequest) returns (ListMemosResponse) {
-    option (google.api.http) = {
-      get: "/v1/memos"
-    };
-  };
   rpc UpdateMemo(UpdateMemoRequest) returns (MemoResponse) {
     option (google.api.http) = {
       patch: "/v1/memo/{id}"
       body: "*"
     };
   };
-  rpc DeleteMemo(DeleteMemoRequest) returns (DeleteMemoResponse); // 수정된 부분
+  rpc DeleteMemo(DeleteMemoRequest) returns (DeleteMemoResponse) {
+    option (google.api.http) = {
+      delete: "/v1/memo/{id}"
+    };
+  };
+
+  rpc ListMemos(ListMemosRequest) returns (ListMemosResponse) {
+    option (google.api.http) = {
+      get: "/v1/memos"
+    };
+  };
+
 }
 
 message CreateMemoRequest {
@@ -47,8 +52,8 @@ message ListMemosRequest {
   repeated int64 ids = 1;
   string keyword = 2;
   int32 priority = 3;
-  google.protobuf.Timestamp from_created_at = 4;
-  google.protobuf.Timestamp to_created_at = 5;
+  int64 from_created_at = 4 [json_name = "from_created_at"];
+  int64 to_created_at = 5 [json_name = "to_created_at"];
 }
 
 message UpdateMemoRequest {
@@ -67,7 +72,7 @@ message MemoResponse {
   string title = 2;
   string content = 3;
   int32 priority = 4;
-  google.protobuf.Timestamp created_at = 5 [json_name = "created_at"];  // 기본적으로 camelCase로 변환되는 필드명을 원하는대로 지정
+  int64 created_at = 5 [json_name = "created_at"];
 }
 
 message ListMemosResponse {
@@ -80,3 +85,4 @@ message DeleteMemoResponse {
   // 예시로, 성공 여부만 나타내는 simple boolean 필드를 추가합니다.
   bool success = 1;
 }
+

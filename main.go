@@ -32,8 +32,7 @@ func startGrpcServer() {
 
 	s := grpc.NewServer()
 
-	memoServer := &memo.MemoServiceServer{}
-	pb.RegisterMemoServiceServer(s, memoServer)
+	pb.RegisterMemoServiceServer(s, &memo.MemoServiceServer{})
 
 	// Register reflection service for grpc-ui.
 	reflection.Register(s)
@@ -60,13 +59,30 @@ func startGrpcGateway(enableSwaggerUI, enableGrpcUI bool) {
 	defer cancel()
 
 	grpcServerEndpoint := fmt.Sprintf("127.0.0.1:%d", grpcPort)
-	gatewayMux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+
+	gatewayMux := runtime.NewServeMux()
 	if err := pb.RegisterMemoServiceHandlerFromEndpoint(ctx, gatewayMux, grpcServerEndpoint, opts); err != nil {
 		log.Fatalf("Failed to register gRPC gateway: %v", err)
 	}
 
 	httpMux := http.NewServeMux()
+
+	httpMux.Handle("/v1/", gatewayMux)
+
+	legacyHandler := memo.SetupLegacyHandlers()
+	httpMux.Handle("/v0/", legacyHandler)
+
+	if enableSwaggerUI || enableGrpcUI {
+		httpMux.HandleFunc("/dev/", func(w http.ResponseWriter, r *http.Request) {
+			// HTML 파일 경로
+			htmlFilePath := "./web/dev.html"
+
+			// HTML 파일을 클라이언트에게 제공
+			http.ServeFile(w, r, htmlFilePath)
+		})
+
+	}
 
 	// Optionally serve Swagger UI.
 	if enableSwaggerUI {
@@ -74,6 +90,10 @@ func startGrpcGateway(enableSwaggerUI, enableGrpcUI bool) {
 		httpMux.Handle("/swagger-ui/", http.StripPrefix("/swagger-ui/", fs))
 		httpMux.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./proto/gen/openapiv2/memo.swagger.json")
+		})
+
+		httpMux.HandleFunc("/swagger-v0.json", func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "./legacy/legacy-swagger.json")
 		})
 	}
 

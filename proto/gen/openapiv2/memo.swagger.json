@@ -78,6 +78,35 @@
           "MemoService"
         ]
       },
+      "delete": {
+        "operationId": "MemoService_DeleteMemo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/memoDeleteMemoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MemoService"
+        ]
+      },
       "patch": {
         "operationId": "MemoService_UpdateMemo",
         "responses": {
@@ -159,18 +188,18 @@
             "format": "int32"
           },
           {
-            "name": "fromCreatedAt",
+            "name": "from_created_at",
             "in": "query",
             "required": false,
             "type": "string",
-            "format": "date-time"
+            "format": "int64"
           },
           {
-            "name": "toCreatedAt",
+            "name": "to_created_at",
             "in": "query",
             "required": false,
             "type": "string",
-            "format": "date-time"
+            "format": "int64"
           }
         ],
         "tags": [
@@ -251,8 +280,7 @@
         },
         "created_at": {
           "type": "string",
-          "format": "date-time",
-          "title": "기본적으로 camelCase로 변환되는 필드명을 원하는대로 지정"
+          "format": "int64"
         }
       }
     },
